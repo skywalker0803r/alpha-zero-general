@@ -1,6 +1,6 @@
 import logging
 import math
-
+from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 
 EPS = 1e-8
@@ -24,8 +24,11 @@ class MCTS():
 
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
+        self.writer = SummaryWriter(flush_secs=1)
+        self.call_count = 0
 
     def getActionProb(self, canonicalBoard, temp=1):
+        
         """
         This function performs numMCTSSims simulations of MCTS starting from
         canonicalBoard.
@@ -34,8 +37,13 @@ class MCTS():
             probs: a policy vector where the probability of the ith action is
                    proportional to Nsa[(s,a)]**(1./temp)
         """
+        self.call_count += 1
+        win_rate_list = []
         for i in range(self.args.numMCTSSims):
-            self.search(canonicalBoard)
+            win_rate = self.search(canonicalBoard)
+            win_rate_list.append(win_rate)
+        self.writer.add_scalar('Win rate', -np.mean(win_rate), self.call_count)
+        self.writer.flush()
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
