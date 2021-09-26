@@ -34,7 +34,7 @@ if mini_othello:
     n1.load_checkpoint('./pretrained_models/othello/pytorch/','6x100x25_best.pth.tar')
 else:
     n1.load_checkpoint('./pretrained_models/othello/pytorch/','8x8_100checkpoints_best.pth.tar')
-args1 = dotdict({'numMCTSSims': 1000, 'cpuct':1.0})
+args1 = dotdict({'numMCTSSims': 1500, 'cpuct':1.0})
 print(args1)
 mcts1 = MCTS(g, n1, args1)
 n1p = lambda x: np.argmax(mcts1.getActionProb(x, temp=0))
@@ -44,7 +44,7 @@ if human_vs_cpu:
 else:
     n2 = NNet(g)
     n2.load_checkpoint('./pretrained_models/othello/pytorch/', '8x8_100checkpoints_best.pth.tar')
-    args2 = dotdict({'numMCTSSims': 1000, 'cpuct':1.0})
+    args2 = dotdict({'numMCTSSims': 1500, 'cpuct':1.0})
     mcts2 = MCTS(g, n2, args2)
     n2p = lambda x: np.argmax(mcts2.getActionProb(x, temp=0))
 

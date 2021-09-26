@@ -25,7 +25,7 @@ class MCTS():
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
         self.writer = SummaryWriter(flush_secs=1)
-        self.call_count = 0
+        self.call_count = 0 # 紀錄呼叫getActionProb函數幾次
 
     def getActionProb(self, canonicalBoard, temp=1):
         
@@ -37,13 +37,16 @@ class MCTS():
             probs: a policy vector where the probability of the ith action is
                    proportional to Nsa[(s,a)]**(1./temp)
         """
-        self.call_count += 1
+        self.call_count += 1 # 紀錄呼叫getActionProb函數幾次
         win_rate_list = []
-        for i in range(self.args.numMCTSSims):
+        for i in range(self.args.numMCTSSims): # 做多次蒙地卡羅模擬 得到多種可能的結果 [v1,v2,v3....]
             win_rate = self.search(canonicalBoard)
+            win_rate = -np.median(win_rate) # 取中位數
+            win_rate = (win_rate + 1) / 2 # 轉換到區間 [0,1] 
             win_rate_list.append(win_rate)
-        self.writer.add_scalar('Win rate', -np.mean(win_rate), self.call_count)
+        self.writer.add_scalar('Win rate', win_rate, self.call_count)
         self.writer.flush()
+        print('Win rate:',win_rate)
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
