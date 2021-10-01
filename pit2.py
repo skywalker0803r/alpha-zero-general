@@ -26,7 +26,7 @@ rp = RandomPlayer(g).play
 gp = GreedyOthelloPlayer(g).play
 hp = HumanOthelloPlayer(g).play
 
-numMCTSSims = 2000
+numMCTSSims = 1000
 cpuct = 1.0
 
 # nnet players
