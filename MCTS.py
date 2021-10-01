@@ -2,6 +2,7 @@ import logging
 import math
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
+from tqdm import tqdm
 
 EPS = 1e-8
 
@@ -39,7 +40,7 @@ class MCTS():
         """
         self.call_count += 1 # 紀錄呼叫getActionProb函數幾次
         win_rate_list = []
-        for i in range(self.args.numMCTSSims): # 做多次蒙地卡羅模擬 得到多種可能的結果 [v1,v2,v3....]
+        for i in tqdm(range(self.args.numMCTSSims)): # 做多次蒙地卡羅模擬 得到多種可能的結果 [v1,v2,v3....]
             win_rate = self.search(canonicalBoard)
             win_rate = -np.median(win_rate) # 取中位數
             win_rate = (win_rate + 1) / 2 # 轉換到區間 [0,1] 
