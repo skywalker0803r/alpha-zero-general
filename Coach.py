@@ -4,7 +4,7 @@ import sys
 from collections import deque
 from pickle import Pickler, Unpickler
 from random import shuffle
-
+from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from tqdm import tqdm
 
@@ -28,6 +28,8 @@ class Coach():
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []  # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False  # can be overriden in loadTrainExamples()
+        self.writer = SummaryWriter(flush_secs=1)
+        self.improve_count = 0 
 
     def executeEpisode(self):
         """
@@ -74,7 +76,7 @@ class Coach():
         iteration. After every iteration, it retrains neural network with
         examples in trainExamples (which has a maximum length of maxlenofQueue).
         It then pits the new neural network against the old one and accepts it
-        only if it wins >= updateThreshold fraction of games.
+        only if it wins >= updateThreshold fractcdion of games.
         """
 
         for i in range(1, self.args.numIters + 1):
@@ -126,6 +128,9 @@ class Coach():
                 log.info('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
+                self.improve_count += 1
+                self.writer.add_scalar('improve_count', self.improve_count, i)
+                self.writer.flush()
 
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'
