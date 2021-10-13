@@ -28,7 +28,7 @@ class MCTS():
         self.writer = SummaryWriter(flush_secs=1)
         self.call_count = 0 # 紀錄呼叫getActionProb函數幾次
 
-    def getActionProb(self, canonicalBoard, temp=1):
+    def getActionProb(self, canonicalBoard, temp=1 ,use_tensorboard=True):
         
         """
         This function performs numMCTSSims simulations of MCTS starting from
@@ -39,15 +39,19 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         self.call_count += 1 # 紀錄呼叫getActionProb函數幾次
-        win_rate_list = []
-        for i in tqdm(range(self.args.numMCTSSims)): # 做多次蒙地卡羅模擬 得到多種可能的結果 [v1,v2,v3....]
-            win_rate = self.search(canonicalBoard)
-            win_rate = -np.median(win_rate) # 取中位數
-            win_rate = (win_rate + 1) / 2 # 轉換到區間 [0,1] 
-            win_rate_list.append(win_rate)
-        self.writer.add_scalar('Win rate', win_rate, self.call_count)
-        self.writer.flush()
-        print('Win rate:',win_rate)
+        
+        for i in tqdm(range(self.args.numMCTSSims)): # 蒙地卡羅搜索進度條
+            self.search(canonicalBoard)
+        
+        # 神經網路估計勝率
+        _ , win_rate = self.nnet.predict(canonicalBoard) 
+        win_rate = (win_rate[0]+1)/2
+        # 打印勝率
+        print('win_rate:',win_rate)
+        # 記錄到tensorboard
+        if use_tensorboard == True:
+            self.writer.add_scalar('Win rate', win_rate, self.call_count)
+            self.writer.flush()
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
